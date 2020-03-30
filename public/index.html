@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.0.0/lib/p5.min.js"></script>
+    <title></title>
+
+</head>
+
+<body>
+    <script type="text/javascript">
+        if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(async position => {
+                const lat = position.coords.latitude;
+                document.getElementById('latitude').textContent = lat;
+                const lon = position.coords.longitude;
+                document.getElementById('longitude').textContent = lon;
+            })
+        } else {
+            console.log('Geolocation not available')
+        }
+
+        function sendRequest() {
+            if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition(async position => {
+                    const lat = position.coords.latitude;
+                    document.getElementById('latitude').textContent = lat;
+                    const lon = position.coords.longitude;
+                    document.getElementById('longitude').textContent = lon;
+                    const api_url = `weather/${lat},${lon}`;
+                    const response = await fetch(api_url);
+                    const json = await response.json();
+                    const weather = json.weather.currently;
+                    const air = json.air_quality.results[0].measurements[0];
+                    document.getElementById('summary').textContent = weather.summary;
+                    document.getElementById('temperature').textContent = weather.temperature;
+                    document.getElementById('aq_parameter').textContent = air.parameter;
+                    document.getElementById('aq_value').textContent = air.value;
+                    document.getElementById('aq_units').textContent = air.unit;
+                    document.getElementById('aq_date').textContent = air.lastUpdated;
+
+                    console.log(json);
+                    const data = {
+                        lat,
+                        lon,
+                        weather,
+                        air
+                    };
+                    const options = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    };
+                    const db_response = await fetch('/api', options)
+                    const db_json = await db_response.json();
+                });
+
+            } else {
+                console.log('geolocation not available');
+            }
+        }
+    </script>
+    <h1>The Weather Here</h1>
+    <div><a href="checkins.html">View Check Ins</a></div>
+    <div style="background-color:aqua;color:#000000;">
+        <p style="padding:10px;"><span id="latitude">&deg;</span>, <span id="longitude">&deg;</span>
+        </p>
+
+    </div>
+    <div <p>The weather here is <span id="summary"></span> with a temperature of <span id="temperature"></span>&deg; C.</p>
+        <p>The concentration of particulate matter (<span id="aq_parameter"></span>) is <span id="aq_value"></span> <span id="aq_units"></span> last read on <span id="aq_date"></span>
+    </div>
+
+
+    <button onclick="sendRequest()">Check In</button>
+
+
+</body>
+
+
+</html>
